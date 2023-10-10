@@ -1,0 +1,55 @@
+{
+  "name": "prestashop-ws-client",
+  "version": "0.0.0",
+  "description": "A typescript WebServices client for PrestaShop",
+  "main": "dist/ws-client.js",
+  "types": "dist/ws-client.d.ts",
+  "private": false,
+  "scripts": {
+    "build": "rimraf ./dist && tsc",
+    "test": "jest --passWithNoTests",
+    "format": "prettier --check 'src/**/*.ts'",
+    "lint": "eslint 'src/**/*.ts'",
+    "format:fix": "prettier --write 'src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' --fix",
+    "fix": "pnpm format:fix && pnpm lint:fix",
+    "example": "ts-node ./examples/test.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PrestaShop/ws-client.git"
+  },
+  "keywords": [
+    "testing",
+    "library",
+    "prestashop",
+    "webservices"
+  ],
+  "author": "The PrestaShop team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PrestaShop/ws-client/issues"
+  },
+  "homepage": "https://github.com/PrestaShop/ws-client#readme",
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.5",
+    "@types/node": "^20.8.4",
+    "@typescript-eslint/eslint-plugin": "^6.7.5",
+    "eslint": "^8.51.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-deprecation": "^2.0.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-unicorn": "^48.0.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.0.3",
+    "rimraf": "^5.0.5",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+}
