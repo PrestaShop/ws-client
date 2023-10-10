@@ -1,0 +1,25 @@
+{
+  "name": "ws-client",
+  "version": "0.0.0",
+  "description": "A typescript WebServices client for PrestaShop",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PrestaShop/ws-client.git"
+  },
+  "keywords": [
+    "testing",
+    "library",
+    "prestashop",
+    "webservices"
+  ],
+  "author": "The PrestaShop team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PrestaShop/ws-client/issues"
+  },
+  "homepage": "https://github.com/PrestaShop/ws-client#readme"
+}
