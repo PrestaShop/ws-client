@@ -1,0 +1,46 @@
+# built output
+dist
+node_modules
+
+# Typescript
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+.pnpm-debug.log*
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+*~
+._*
+
+# Unit tests and coverage
+coverage
+/.nyc_output
+*.lcov
+playwright-report/
+playwright/.cache/
+
+# IDEs and editors
+.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Local
+.env
+.env.*
+!.env.dist
+!.env.test
