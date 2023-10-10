@@ -41,8 +41,6 @@ NodeJs compatibility :
 - [fetch](https://www.npmjs.com/package/node-fetch)
 - Typescript
 
-## Architecture
-
 ## How to use
 
 Set up the env file:
@@ -72,12 +70,33 @@ console.log(response.data.product); // Maybe return type writable ??
 // InvalidCredentialsException
 ```
 
-### Contributing
+# Build
+
+Install dependencies:
+
+```sh
+npm install -g pnpm
+pnpm install
+```
+
+Build the library:
+
+```sh
+pnpm build
+```
+
+Test the library:
+
+```sh
+pnpm test
+```
+
+# Contributing
 
 This library is an open source solution. Everyone is welcome and even encouraged to contribute with their own improvements!
 
 Just make sure to follow our [contribution guidelines](https://devdocs.prestashop-project.org/8/contribute/contribution-guidelines/project-modules/).
 
-### Reporting issues
+## Reporting issues
 
 You can report issues [here](https://github.com/PrestaShop/ws-client/issues/new).
