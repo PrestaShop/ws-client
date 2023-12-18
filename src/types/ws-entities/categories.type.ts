@@ -1,5 +1,6 @@
 //Readable
-import { LanguageValue } from './language-value.type';
+
+import { LanguageValue } from '../../xml.interfaces';
 
 export type Category = {
   active: number;

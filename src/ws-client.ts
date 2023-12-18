@@ -1,210 +1,320 @@
-import axios, { AxiosResponse } from 'axios';
-import fetch, { Response } from 'node-fetch';
+import { DOMParser } from '@xmldom/xmldom';
 import { Parser } from 'xml2js-cdata';
 import { create } from 'xmlbuilder2';
 import { endpointNodes } from './endpoint-nodes';
-import { ApiParams } from './types/api';
-import { Config } from './types/config.type';
 import { Entity, EntityWritable } from './types/entity-mapping.type';
+import { getLanguageValues } from './xml.interfaces';
 
 /**
- * EntityWritableMapping
- * EntityMapping
+ *
  */
-export class WSClient<T extends keyof Entity> {
-  // only if create/update
-  private languageIds: string | string[] = '';
-  private requiredFields: string[] = [];
-  private readOnlyFields: string[] = [];
-  private localizedFields: string[] = [];
-  private synopsis; //XML (no json format)
+export interface RequestOptions {
+  id?: string;
+  query?: Record<string, string>;
+}
 
-  // /!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\
-  // langues du BO en param ? suivant s'il s'agit d'un multilanguage ou non le json n'est pas formaté de la meme manière
-  // constructor(private readonly endpoint : T, languages:string | string[]) {
+export interface WsConfig {
+  url: string;
+  wsKey: string;
+}
+
+export class WSClient<T extends keyof Entity> {
+  private languageIds: number | number[] = -1;
+  private requiredNodes: string[] = [];
+  private readOnlyNodes: string[] = [];
+  private localizedNodes: string[] = [];
+
   constructor(
     private readonly endpoint: T,
-    private config: Config,
+    private config: WsConfig,
   ) {}
 
-  setConfig(config: Config) {
-    this.config = config;
+  /**
+   *
+   * @param {string} endpoint - Endpoint
+   * @param {RequestOptions} options - Query parameters
+   */
+  getUrl(endpoint: string, options?: RequestOptions) {
+    let urlWithParams: string = `${this.getConfig().url}/api/${endpoint}`;
+    if (options?.id) {
+      urlWithParams = `${urlWithParams}/${options.id}`;
+    }
+    if (options?.query) {
+      const params = Object.keys(options.query).reduce((acc, key) => {
+        if (options?.query?.[key] !== undefined) {
+          acc.push(`${key}=${options.query[key]}`);
+        }
+        return acc;
+      }, [] as string[]);
+      urlWithParams = `${urlWithParams}?${params.join('&')}`;
+    }
+    return urlWithParams;
   }
 
-  call = async ({ method, path, params, headers, body }: ApiParams) => {
-    const response: Response = await fetch({
-      method,
-      url: `${this.config.url}/api/${path}`,
-      headers,
-      params: {
-        ...params,
-        ws_key: this.config.url,
-        output_format: 'JSON',
-      },
-      data: body,
-    }).catch((error: Error) => {
-      return error;
-    });
+  /**
+   * TODO encode key
+   *
+   * @param str
+   */
+  encode(str: string): string {
+    return btoa(this.config.wsKey);
+  }
 
-    return response;
-  };
+  getDefaultHeaders(): Headers {
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    headers.append('Accept', 'application/json');
+    return headers;
+  }
 
+  /**
+   *
+   * @param {Partial<EntityWritable>} entityData - Data for the entity to be created
+   */
   async create(entityData: Partial<EntityWritable[T]>): Promise<Entity[T]> {
-    if (this.synopsis == undefined) {
-      await this.init();
+    if (this.getRequiredFields().length == 0) {
+      //async ressources
+      await this.initSpecificEntityFieldsIndicators();
     }
     const entity: Entity[T] = await this.getBlank();
     this.fillFields(entity, entityData);
     this.removeReadOnlyFields(entity, entityData);
-    this.fillAssociations(entity, entityData);
 
-    const entityNodeName: string = endpointNodes.get(this.endpoint) ?? '';
+    const entityNodeName: string = this.getNodeName() ?? '';
     const xml: string = create({
       prestashop: { [entityNodeName]: entity },
     }).end({
       prettyPrint: true,
     });
-    // console.log(`xml: ${xml}`);
-    let response: AxiosResponse;
-    try {
-      response = await axios({
-        method: 'post',
-        url: `${this.config.url}/api/${this.endpoint}`,
-        headers: { 'Content-Type': 'text/xml' },
-        params: {
-          ws_key: this.config.wsKey,
-          output_format: 'JSON',
-        },
-        data: xml,
-      });
-    } catch (error: unknown) {
-      console.log(error);
-      throw error;
-    }
-    // console.log(`created response: ${response.data[endpoint][0]}`);
 
-    console.log(
-      `[NEW] ${this.endpoint} WS response status: ${response.status} (${response.statusText})`,
+    const response: Response = await fetch(
+      this.getUrl(this.getEndPoint(), {
+        query: {
+          ws_key: this.getConfig().wsKey,
+          output_format: 'JSON',
+          display: 'full',
+        },
+      }),
+      {
+        method: 'POST',
+        mode: 'cors',
+        headers: this.getDefaultHeaders(),
+        body: xml,
+      },
     );
-    // console.log(`response: ${response.data}`);
-    const elt: string = endpointNodes.get(this.endpoint)!;
-    return response.data[elt]; //cart_rule, category
+    const result = await response.json();
+    return result[this.getEndPoint()][0] as Entity[T];
   }
 
   /**
-   * no json format
+   *
+   * @param { string } id - ID's entity
    */
-  async getSynopsis(): Promise<Entity[T]> {
+  async get(id: string): Promise<Entity[T]> {
+    const response: Response = await fetch(
+      this.getUrl(this.getEndPoint(), {
+        id: id,
+        query: {
+          ws_key: this.getConfig().wsKey,
+          output_format: 'JSON',
+          display: 'full',
+        },
+      }),
+      {
+        method: 'GET',
+        mode: 'cors',
+        headers: this.getDefaultHeaders(),
+      },
+    );
+    const json = await response.json();
+    return json[this.getEndPoint()][0] as Entity[T];
+  }
+
+  async getAll(): Promise<Entity[T]> {
+    const response: Response = await fetch(
+      this.getUrl(this.getEndPoint(), {
+        query: {
+          ws_key: this.getConfig().wsKey,
+          output_format: 'JSON',
+          display: 'full',
+        },
+      }),
+      {
+        method: 'GET',
+        mode: 'cors',
+        headers: this.getDefaultHeaders(),
+      },
+    );
+    const json = await response.json();
+    return json[this.getEndPoint()][0] as Entity[T];
+  }
+
+  /**
+   *
+   * @param {Partial<EntityWritable>} entityData - Data for the entity to be updated
+   */
+  async update(entityData: Partial<EntityWritable[T]>): Promise<Entity[T]> {
+    if (this.getRequiredFields().length == 0) {
+      //async ressources
+      await this.initSpecificEntityFieldsIndicators();
+    }
+    const entityId = entityData.id;
+    const entity: Entity[T] = await this.get(entityId!.toString());
+    this.fillFields(entity, entityData);
+    this.removeReadOnlyFields(entity, entityData);
+
+    const entityNodeName: string = this.getNodeName() ?? '';
+    const xml: string = create({
+      prestashop: { [entityNodeName]: entity },
+    }).end({
+      prettyPrint: true,
+    });
+
+    const response: Response = await fetch(
+      this.getUrl(this.getEndPoint(), {
+        query: {
+          ws_key: this.getConfig().wsKey,
+          output_format: 'JSON',
+          display: 'full',
+        },
+      }),
+      {
+        method: 'PUT',
+        mode: 'cors',
+        headers: this.getDefaultHeaders(),
+        body: xml,
+      },
+    );
+    return (await response.json()) as Entity[T];
+  }
+
+  async delete(id: string): Promise<number> {
+    const response: Response = await fetch(
+      this.getUrl(this.getEndPoint(), {
+        id: id,
+        query: {
+          ws_key: this.getConfig().wsKey,
+        },
+      }),
+      {
+        method: 'DELETE',
+        mode: 'cors',
+        headers: this.getDefaultHeaders(),
+      },
+    );
+    return response.status;
+  }
+
+  /**
+   * ?schema=synopsis: returns a blank XML tree of the chosen resource, with the format that is expected for each value
+   * and specific indicators (ie, if the node is required, read only, multilanguage).
+   *
+   * No json format
+   *
+   * return the synopsis XML as string
+   */
+  async getSynopsis(): Promise<string> {
     const xmlParser = new Parser();
     // TODO
     // The category synopsis for version 1.7.x of PS is not correct
     // Recover the category synopsis from an xml file
 
-    let response: AxiosResponse;
-    try {
-      response = await axios({
-        method: 'get',
-        url: `${this.config.url}/api/${this.endpoint}`,
-        params: {
+    const response: Response = await fetch(
+      this.getUrl(this.getEndPoint(), {
+        query: {
+          ws_key: this.getConfig().wsKey,
           schema: 'synopsis',
-          display: 'full',
-          ws_key: this.config.wsKey,
         },
-      });
-    } catch (error: unknown) {
-      console.log(error);
-      throw error;
-    }
-
-    const elt = endpointNodes.get(this.endpoint);
-    const synopsis = await xmlParser.parseStringPromise(response.data);
-
-    return synopsis.prestashop[elt][0];
+      }),
+      {
+        method: 'GET',
+        mode: 'no-cors',
+        headers: this.getDefaultHeaders(),
+      },
+    );
+    return await response.text();
   }
 
+  async getSynopsisNodeList() {
+    const synopsis = await this.getSynopsis();
+    const domParser: DOMParser = new DOMParser();
+    const xmlDocument: Document = domParser.parseFromString(
+      synopsis,
+      'application/xml',
+    );
+
+    const rootElt = xmlDocument.documentElement;
+    const endpointElt: Element = rootElt.getElementsByTagName(
+      this.getNodeName()!,
+    )[0];
+    return endpointElt.childNodes;
+  }
+
+  /**
+   * ?schema=blank: returns a blank Json tree of the chosen resource.
+   */
   async getBlank(): Promise<Entity[T]> {
-    let response: AxiosResponse;
-    try {
-      response = await axios({
-        method: 'get',
-        url: `${this.config.url}/api/${this.endpoint}`,
-        params: {
+    const response: Response = await fetch(
+      this.getUrl(this.getEndPoint(), {
+        query: {
+          ws_key: this.getConfig().wsKey,
           schema: 'blank',
-          display: 'full',
-          ws_key: this.config.wsKey,
           output_format: 'JSON',
+          display: 'full',
         },
-      });
-    } catch (error: unknown) {
-      console.log(error);
-      throw error;
-    }
+      }),
+      {
+        method: 'GET',
+        mode: 'no-cors',
+        headers: this.getDefaultHeaders(),
+      },
+    );
 
-    // const elt: string = endpointNodes.get(this.endpoint)!;
-    return response.data[this.endpoint][0];
+    const json = await response.json();
+    return json[this.getEndPoint()][0] as Entity[T];
   }
 
-  async init() {
+  /**
+   * Initializes languages and specific fields indicators (ie, if the field is required, read only)
+   */
+  async initSpecificEntityFieldsIndicators() {
+    // languages
     this.languageIds = await this.getShopLanguages();
-    this.synopsis = await this.getSynopsis();
-    this.initAttributeFields();
+
+    // required, read only synopsis node list
+    this.initSpecificNodeIndicators(await this.getSynopsisNodeList());
   }
 
-  traverseTree(
-    entity: Partial<Entity[T]> | Partial<EntityWritable[T]>,
-    parentKey?: string,
-  ): string[] {
-    let keys: string[] = [];
-
-    Object.keys(entity).forEach((key) => {
-      const value = entity[key];
-      const _key: string = parentKey ? parentKey + '.' + key : key;
-      if (this.hasChild(value)) {
-        keys.push(...this.traverseTree(value, _key));
-        console.log(typeof value);
-        // this.traverseTree(node);
-      } else {
-        keys.push(key);
-        console.log(key);
-      }
-    });
-    return keys;
-  }
-
-  hasChild(node) {
-    return typeof node === 'object' && Object.keys(node).length > 0;
-  }
   /**
    * fill fields and check that the mandatory fields are filled in
    *
-   * @param entity
-   * @param entityData
+   * @param {Entity} entity - The blank entity
+   * @param {Partial<EntityWritable>} entityData - Data for the entity to be created
    */
   fillFields(entity: Entity[T], entityData: Partial<EntityWritable[T]>) {
     const requiredFieldsFound: string[] = [];
 
     for (const property of Object.keys(entityData)) {
-      if ('associations' !== property) {
+      if (
+        this.getLocalizedFields().includes(property) &&
+        typeof entityData[property] == 'string'
+      ) {
+        entity[property] = getLanguageValues({
+          id: Number(this.getLanguageIds()[0]),
+          value: entityData[property],
+        });
+      } else {
         entity[property] = entityData[property];
       }
 
       // requiered field
-      if (this.requiredFields.includes(property)) {
+      if (this.getRequiredFields().includes(property)) {
         requiredFieldsFound.push(property);
       }
     }
-
     // error
-    if (this.requiredFields.length != requiredFieldsFound.length) {
+    if (this.getRequiredFields().length != requiredFieldsFound.length) {
       this.requiredFieldNotFoundException(requiredFieldsFound);
-    }
-  }
-
-  fillAssociations(entity: Entity[T], entityData: Partial<EntityWritable[T]>) {
-    // TODO associations element
-    delete entity['associations'];
-    if (entityData['associations']) {
-      entity['associations'] = entityData['associations'];
     }
   }
 
@@ -215,80 +325,113 @@ export class WSClient<T extends keyof Entity> {
     for (const property in entity) {
       if (
         this.isReadOnlyField(property) ||
-        this.isNotRequiredAndNotUpdatedField(property, entityData)
+        (this.isNotRequiredField(property) &&
+          this.isNotUpdatedField(property, entityData))
       ) {
         delete entity[property];
       }
     }
   }
 
-  isReadOnlyField(property: string) {
-    return this.readOnlyFields.includes(property);
+  /**
+   *
+   * @param property
+   */
+  isReadOnlyField(property: string): boolean {
+    return this.readOnlyNodes.includes(property);
   }
 
-  isNotRequiredAndNotUpdatedField(
+  isNotRequiredField(property: string) {
+    return !this.getRequiredFields().includes(property);
+  }
+
+  isNotUpdatedField(
     property: string,
     shopContentData: Partial<EntityWritable[T]>,
   ) {
-    return (
-      !this.requiredFields.includes(property) && !shopContentData[property]
-    );
+    return !shopContentData[property];
   }
 
-  async getShopLanguages(): Promise<string[]> {
-    let response: AxiosResponse;
-    try {
-      response = await axios({
-        method: 'get',
-        url: `${this.config.url}/api/languages`,
-        params: {
-          display: 'full',
-          ws_key: this.config.wsKey,
+  async getShopLanguages(): Promise<number[]> {
+    const response: Response = await fetch(
+      this.getUrl('languages', {
+        query: {
+          ws_key: this.getConfig().wsKey,
           output_format: 'JSON',
+          display: 'full',
         },
-      });
-    } catch (error: unknown) {
-      console.log(error);
-      throw error;
-    }
+      }),
+      {
+        method: 'GET',
+        mode: 'no-cors',
+        headers: this.getDefaultHeaders(),
+      },
+    );
 
-    const langArr: string[] = [];
-    if (response.data.languages.length > 0) {
-      const languages = response.data?.languages ? response.data.languages : [];
+    const json = await response.json();
+    const langArr: number[] = [];
+    if (json.languages.length > 0) {
+      const languages = json?.languages ? json.languages : [];
       for (const language of languages) {
-        langArr.push(language.id);
+        langArr.push(parseInt(language.id));
       }
     }
     return langArr;
   }
 
-  initAttributeFields() {
-    for (const property of Object.keys(this.synopsis)) {
-      if (
-        this.synopsis[property][0].$?.required != undefined &&
-        this.synopsis[property][0].$.required == 'true'
-      ) {
-        this.requiredFields.push(property);
-      } else if (
-        (this.synopsis[property][0].$?.readOnly != undefined &&
-          this.synopsis[property][0].$.readOnly == 'true') ||
-        (this.synopsis[property][0].$?.read_only != undefined &&
-          this.synopsis[property][0].$.read_only == 'true')
-      ) {
-        this.readOnlyFields.push(property);
+  /**
+   * Initializes and returns an array of paths from the given list of nodes.
+   * Browse the synopsis XML in depth and return the flattened tree
+   *
+   * @param {NodeList} nodes - The list of nodes to process.
+   * @param {string} [path] - The optional path.
+   * @return {string[]} - An array of paths.
+   */
+  initSpecificNodeIndicators(nodes: NodeList, path?: string): string[] {
+    let paths: string[] = [];
+    let _path: string = path!;
+
+    for (const node of Array.from(nodes)) {
+      if (node.nodeType == node.ELEMENT_NODE) {
+        const elt: Element = node as Element;
+        _path = path ? path + '.' + elt.nodeName : elt.nodeName;
+        this.pushSpecificNodeIndicators(elt, _path);
+        if (node.hasChildNodes() && 'language' != node.firstChild?.nodeName) {
+          paths.push(
+            ...this.initSpecificNodeIndicators(node.childNodes, _path),
+          );
+        } else {
+          paths.push(_path);
+        }
       }
-      if (this.synopsis[property][0]?.language != undefined) {
-        this.localizedFields.push(property);
-      }
-      //TODO assiciations element
+    }
+    console.log(paths);
+    return paths;
+  }
+
+  /**
+   *
+   * @param {Element} elt
+   * @param {string} path
+   */
+  pushSpecificNodeIndicators(elt: Element, path: string) {
+    if (elt.getAttribute('required')) {
+      this.getRequiredFields().push(path);
+    }
+    if (elt.getAttribute('read_only') || elt.getAttribute('readOnly')) {
+      this.getReadOnlyFields().push(path);
+    }
+    if ('language' == elt.firstChild?.nodeName) {
+      // path.substring(0, path.length - '.language'.length),
+      this.getLocalizedFields().push(path);
     }
   }
 
   requiredFieldNotFoundException(requiredFieldsFound: string[]): never {
     let msg: string = `The following propertie(s) of ${endpointNodes.get(
-      this.endpoint,
+      this.getEndPoint(),
     )} are required: \n`;
-    for (const property of this.requiredFields) {
+    for (const property of this.getRequiredFields()) {
       if (!requiredFieldsFound.includes(property)) {
         msg += `* ${property}\n`;
       }
@@ -296,7 +439,35 @@ export class WSClient<T extends keyof Entity> {
     throw new Error(msg);
   }
 
-  private getConfig(): Config {
+  setConfig(config: WsConfig) {
+    this.config = config;
+  }
+
+  getConfig() {
     return this.config;
+  }
+
+  getEndPoint() {
+    return this.endpoint;
+  }
+
+  getNodeName() {
+    return endpointNodes.get(this.getEndPoint());
+  }
+
+  getLanguageIds(): number | number[] {
+    return this.languageIds;
+  }
+
+  getRequiredFields(): string[] {
+    return this.requiredNodes;
+  }
+
+  getReadOnlyFields(): string[] {
+    return this.readOnlyNodes;
+  }
+
+  getLocalizedFields(): string[] {
+    return this.localizedNodes;
   }
 }
