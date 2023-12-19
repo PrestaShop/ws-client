@@ -22,19 +22,19 @@ NodeJs compatibility :
 
 ## Endpoint to implement
 
-| Endpoint  | URL | Done |
-| --------- | --- | ---- |
-| product   |     | []   |
-| order     |     | []   |
-| customer  |     | []   |
-| cart      |     | []   |
-| cart_rule |     | []   |
-| category  |     | []   |
-| store     |     | []   |
-| tax       |     | []   |
-| tax_rule  |     | []   |
-| address   |     | []   |
-| country   |     | []   |
+| Endpoint   | URL | Done |
+|------------| --- | ---- |
+| addresses  |     | []   |
+| carts      |     | []   |
+| cart_rules |     | []   |
+| categories |     | []   |
+| country    |     | []   |
+| customers  |     | []   |
+| orders     |     | []   |
+| products   |     | []   |
+| stores     |     | []   |
+| taxes      |     | []   |
+| tax_rules  |     | []   |
 
 ## Stack
 
@@ -53,14 +53,16 @@ open .env
 Run some code:
 
 ```js
-const client = new WSClient({
+const client = new WSClient(Endpoint.categories, {
   baseURl: process.env.BASE_URL, // URL of your PrestaShop
   wsKey: process.env.WS_KEY, // Key to connect to your prestashop
 });
-
-const response = await client.product.create(productData);
-console.log(response.status);
-console.log(response.data.product); // Maybe return type writable ??
+const categoryData: CategoryWritable = {
+  ... 
+};
+// The create method takes a writable type as parameter and returns a readable type.
+const category: Category = await wsClient.create(categoryData);
+console.log(category.id);//
 
 // Error case
 // Return an Exeption depending on what is the error.
