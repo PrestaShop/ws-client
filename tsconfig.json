@@ -1,14 +1,22 @@
 {
   "compilerOptions": {
     "target": "es2022",
+    "module": "es2022",
     "incremental": false,
-    "module": "CommonJS",
     "moduleResolution": "node",
     "removeComments": true,
-    "sourceMap": false,
+    "sourceMap": true,
     "outDir": "dist",
-    "rootDir": "./src"
+    "rootDir": ".",
+    "esModuleInterop": true,
+    "strict": true,
+//    "allowJs": true,
+    "noImplicitAny": false
   },
-  "include": ["src"],
+  //  "typeRoots": [
+//    "./typings",
+//    "./node_modules/@types/"
+//  ],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
