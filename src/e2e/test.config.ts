@@ -1,8 +1,8 @@
-import { WsConfig } from '../ws-client';
+import { Config } from '../types/config.type';
 
-const wsConfig: WsConfig = {
+const wsConfig: Config = {
   url: 'http://localhost:8000',
-  wsKey: 'GENERATE_A_COMPLEX_VALUE_WITH_32',
+  key: 'GENERATE_A_COMPLEX_VALUE_WITH_32',
 };
 
 export const testConfig = {

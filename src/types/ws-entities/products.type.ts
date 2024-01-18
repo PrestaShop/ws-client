@@ -1,4 +1,4 @@
-import { LanguageValue } from '../../xml.interfaces';
+import { LanguageValue } from '../../xml/xml.interfaces';
 
 export type Product = {
   active: string;

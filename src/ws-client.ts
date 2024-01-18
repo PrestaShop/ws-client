@@ -1,9 +1,11 @@
 import { DOMParser } from '@xmldom/xmldom';
 import { Parser } from 'xml2js-cdata';
 import { create } from 'xmlbuilder2';
-import { endpointNodes } from './endpoint-nodes';
+import { Config } from './types/config.type';
 import { Entity, EntityWritable } from './types/entity-mapping.type';
-import { getLanguageValues } from './xml.interfaces';
+import { wsConfig } from './ws-config';
+import { endpointNodes } from './xml/endpoint-nodes';
+import { getLanguageValues } from './xml/xml.interfaces';
 
 /**
  *
@@ -13,10 +15,10 @@ export interface RequestOptions {
   query?: Record<string, string>;
 }
 
-export interface WsConfig {
-  url: string;
-  wsKey: string;
-}
+// export interface WsConfig {
+//   url: string;
+//   wsKey: string;
+// }
 
 export class WSClient<T extends keyof Entity> {
   private languageIds: number | number[] = -1;
@@ -24,10 +26,7 @@ export class WSClient<T extends keyof Entity> {
   private readOnlyNodes: string[] = [];
   private localizedNodes: string[] = [];
 
-  constructor(
-    private readonly endpoint: T,
-    private config: WsConfig,
-  ) {}
+  constructor(private readonly endpoint: T) {}
 
   /**
    *
@@ -57,7 +56,7 @@ export class WSClient<T extends keyof Entity> {
    * @param str
    */
   encode(str: string): string {
-    return btoa(this.config.wsKey);
+    return btoa(this.getConfig().key);
   }
 
   getDefaultHeaders(): Headers {
@@ -90,7 +89,7 @@ export class WSClient<T extends keyof Entity> {
     const response: Response = await fetch(
       this.getUrl(this.getEndPoint(), {
         query: {
-          ws_key: this.getConfig().wsKey,
+          ws_key: this.getConfig().key,
           output_format: 'JSON',
           display: 'full',
         },
@@ -115,7 +114,7 @@ export class WSClient<T extends keyof Entity> {
       this.getUrl(this.getEndPoint(), {
         id: id,
         query: {
-          ws_key: this.getConfig().wsKey,
+          ws_key: this.getConfig().key,
           output_format: 'JSON',
           display: 'full',
         },
@@ -134,7 +133,7 @@ export class WSClient<T extends keyof Entity> {
     const response: Response = await fetch(
       this.getUrl(this.getEndPoint(), {
         query: {
-          ws_key: this.getConfig().wsKey,
+          ws_key: this.getConfig().key,
           output_format: 'JSON',
           display: 'full',
         },
@@ -173,7 +172,7 @@ export class WSClient<T extends keyof Entity> {
     const response: Response = await fetch(
       this.getUrl(this.getEndPoint(), {
         query: {
-          ws_key: this.getConfig().wsKey,
+          ws_key: this.getConfig().key,
           output_format: 'JSON',
           display: 'full',
         },
@@ -193,7 +192,7 @@ export class WSClient<T extends keyof Entity> {
       this.getUrl(this.getEndPoint(), {
         id: id,
         query: {
-          ws_key: this.getConfig().wsKey,
+          ws_key: this.getConfig().key,
         },
       }),
       {
@@ -222,7 +221,7 @@ export class WSClient<T extends keyof Entity> {
     const response: Response = await fetch(
       this.getUrl(this.getEndPoint(), {
         query: {
-          ws_key: this.getConfig().wsKey,
+          ws_key: this.getConfig().key,
           schema: 'synopsis',
         },
       }),
@@ -257,7 +256,7 @@ export class WSClient<T extends keyof Entity> {
     const response: Response = await fetch(
       this.getUrl(this.getEndPoint(), {
         query: {
-          ws_key: this.getConfig().wsKey,
+          ws_key: this.getConfig().key,
           schema: 'blank',
           output_format: 'JSON',
           display: 'full',
@@ -356,7 +355,7 @@ export class WSClient<T extends keyof Entity> {
     const response: Response = await fetch(
       this.getUrl('languages', {
         query: {
-          ws_key: this.getConfig().wsKey,
+          ws_key: this.getConfig().key,
           output_format: 'JSON',
           display: 'full',
         },
@@ -439,12 +438,8 @@ export class WSClient<T extends keyof Entity> {
     throw new Error(msg);
   }
 
-  setConfig(config: WsConfig) {
-    this.config = config;
-  }
-
-  getConfig() {
-    return this.config;
+  getConfig(): Config {
+    return { url: wsConfig.url, key: wsConfig.key };
   }
 
   getEndPoint() {
