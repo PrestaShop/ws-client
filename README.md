@@ -53,16 +53,16 @@ open .env
 Run some code:
 
 ```js
-const client = new WSClient(Endpoint.categories, {
-  baseURl: process.env.BASE_URL, // URL of your PrestaShop
-  wsKey: process.env.WS_KEY, // Key to connect to your prestashop
-});
+import { categories } from '../../ws-client-endpoints';
+import { init } from '../../ws-config';
+import { CategoryWritable } from '../types/ws-entities/categories.type';
+...
 const categoryData: CategoryWritable = {
-  ... 
-};
-// The create method takes a writable type as parameter and returns a readable type.
-const category: Category = await wsClient.create(categoryData);
-console.log(category.id);//
+  ...
+}
+init('http://localhost:8080', 'GENERATE_A_COMPLEX_WSKEY_WITH_32');
+const category: Category = await categories.create(categoryData);
+console.log(`Category (id=${category.id} created at ${category.date_add}`,);
 
 // Error case
 // Return an Exeption depending on what is the error.
