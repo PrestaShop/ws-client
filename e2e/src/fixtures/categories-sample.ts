@@ -1,5 +1,5 @@
-import { CategoryWritable } from '../types/ws-entities/categories.type';
-import { getLanguageValues } from '../xml/xml.interfaces';
+import { CategoryWritable } from '../../../src/types/ws-entities/categories.type';
+import { getLanguageValues } from '../../../src/xml/xml.interfaces';
 
 export const newCategory: CategoryWritable = {
   id_parent: 3,

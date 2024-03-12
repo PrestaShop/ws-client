@@ -1,4 +1,4 @@
-import { Config } from '../types/config.type';
+import { Config } from '../src/types/config.type';
 
 const wsConfig: Config = {
   url: 'http://localhost:8000',
