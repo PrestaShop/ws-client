@@ -22,19 +22,19 @@ NodeJs compatibility :
 
 ## Endpoint to implement
 
-| Endpoint  | URL | Done |
-| --------- | --- | ---- |
-| product   |     | []   |
-| order     |     | []   |
-| customer  |     | []   |
-| cart      |     | []   |
-| cart_rule |     | []   |
-| category  |     | []   |
-| store     |     | []   |
-| tax       |     | []   |
-| tax_rule  |     | []   |
-| address   |     | []   |
-| country   |     | []   |
+| Endpoint   | URL | Done |
+|------------| --- | ---- |
+| addresses  |     | []   |
+| carts      |     | []   |
+| cart_rules |     | []   |
+| categories |     | []   |
+| country    |     | []   |
+| customers  |     | []   |
+| orders     |     | []   |
+| products   |     | []   |
+| stores     |     | []   |
+| taxes      |     | []   |
+| tax_rules  |     | []   |
 
 ## Stack
 
@@ -53,7 +53,7 @@ open .env
 Run some code:
 
 ```js
-const client = new WSClient({
+const client = new BaseClient({
   baseURl: process.env.BASE_URL, // URL of your PrestaShop
   wsKey: process.env.WS_KEY, // Key to connect to your prestashop
 });

@@ -1,0 +1,54 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+    inputs:
+      tag-name:
+        description: Tag to create release from
+        required: true
+        type: string
+        default: 2.1.0
+
+env:
+  NODE_VERSION: 18.x
+  TAG_NAME: ${{ inputs.tag-name }}
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    name: Create New Release on Github
+
+    steps:
+      - name: Get tag
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        run:  echo "TAG_NAME=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_ENV
+
+      - name: Changelog
+        uses: scottbrenner/generate-changelog-action@master
+        id: Changelog
+
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Add release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: "V${{ env.TAG_NAME }}"
+          tag_name: ${{ env.TAG_NAME }}
+          body: |
+            ${{ steps.Changelog.outputs.changelog }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
