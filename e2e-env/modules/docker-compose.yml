@@ -1,0 +1,11 @@
+---
+
+services:
+  asset-downloader:
+    build:
+      context: .
+      dockerfile: ./asset-downloader.Dockerfile
+    volumes:
+      - ./downloads/auto-install:/downloads/auto-install:rw
+    environment:
+      - PS_ACCOUNTS_VERSION=${PS_ACCOUNTS_VERSION:?See e2e-env/.env.dist}
