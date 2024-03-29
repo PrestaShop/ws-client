@@ -1,20 +1,4 @@
 services:
-  ps-accounts-downloader:
-    restart: 'no'
-    env_file: .env
-    container_name: ps-accounts-downloader
-    extends:
-      file: ./modules/docker-compose.yml
-      service: asset-downloader
-    volumes:
-      - ./modules:/modules:rw
-    environment:
-      GITHUB_REPOSITORY: PrestaShopCorp/ps_accounts
-      TARGET_VERSION: $PS_ACCOUNTS_VERSION
-      TARGET_ASSET: ps_accounts_preprod.zip
-      FINAL_ASSET: ps_accounts-${PS_ACCOUNTS_VERSION}_preprod.zip
-      ASSET_PATH: /modules/downloads/auto-install
-
   mysql:
     image: mariadb:${DOCKER_VERSION_MARIADB:?See e2e-env/.env.dist}
     restart: unless-stopped
@@ -48,15 +32,11 @@ services:
     restart: unless-stopped
     env_file: .env
     depends_on:
-      ps-accounts-downloader:
-        condition: service_completed_successfully
       mysql:
         condition: service_healthy
     environment:
       - SSL_REDIRECT=true
-      - INSTALL_MODULES_DIR=/modules/downloads/auto-install
     volumes:
-      - ./modules:/modules
       - ./init-scripts:/tmp/init-scripts:ro
     ports:
       - ${HOST_PORT_BIND_PRESTASHOP:?See e2e-env/.env.dist}:80
@@ -93,7 +73,3 @@ services:
       - PMA_USER=prestashop
       - PMA_PASSWORD=prestashop
       - MYSQL_ROOT_PASSWORD=prestashop
-
-volumes:
-  modules:
-    driver: local

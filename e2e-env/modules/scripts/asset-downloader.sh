@@ -62,7 +62,6 @@ else
   }
 
   # Download the github asset
-  # Proposition: gh --repo PrestaShopCorp/ps_eventbus release download v1.10.6
   echo "Downloading asset $TARGET_ASSET with id:$ASSET_ID...";
   curl --fail -LJ -o "${DOWNLOAD_PATH}/${OUTPUT}" -H "Accept: application/octet-stream" -H "Authorization: token $GITHUB_API_TOKEN" "$GH_REPO_URL/releases/assets/$ASSET_ID" || {
     echo "Error: cannot download the requested asset";
