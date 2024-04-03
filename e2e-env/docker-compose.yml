@@ -1,25 +1,29 @@
 services:
-  ps-accounts-downloader:
-    restart: 'no'
+  prestashop:
+    container_name: prestashop
+    restart: unless-stopped
+    image: prestashop/prestashop-flashlight:${SHOP_VERSION}
     env_file: .env
-    container_name: ps-accounts-downloader
-    extends:
-      file: ./modules/docker-compose.yml
-      service: asset-downloader
-    volumes:
-      - ./modules:/modules:rw
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ps-accounts-downloader:
+        condition: service_completed_successfully
     environment:
-      GITHUB_REPOSITORY: PrestaShopCorp/ps_accounts
-      TARGET_VERSION: $PS_ACCOUNTS_VERSION
-      TARGET_ASSET: ps_accounts_preprod.zip
-      FINAL_ASSET: ps_accounts-${PS_ACCOUNTS_VERSION}_preprod.zip
-      ASSET_PATH: /modules/downloads/auto-install
+      - SSL_REDIRECT=true
+      - INSTALL_MODULES_DIR=/modules/downloads/auto-install
+    volumes:
+      - ./modules:/modules
+      - ./init-scripts:/tmp/init-scripts:ro
+    ports:
+      - ${HOST_PORT_BIND_PRESTASHOP:?See e2e-env/.env.dist}:80
 
   mysql:
-    image: mariadb:${DOCKER_VERSION_MARIADB:?See e2e-env/.env.dist}
-    restart: unless-stopped
     container_name: mysql
+    restart: unless-stopped
+    image: mariadb:lts
     environment:
+      - TZ=Europe/Paris
       - MYSQL_HOST=mysql
       - MYSQL_USER=prestashop
       - MYSQL_PASSWORD=prestashop
@@ -36,39 +40,23 @@ services:
           '--user=prestashop',
           '--password=prestashop',
         ]
-      interval: 1s
+      interval: 5s
       timeout: 10s
-      retries: 30
+      retries: 5
     ports:
-      - ${HOST_PORT_BIND_MYSQL:?See e2e-env/.env.dist}:3306
-
-  prestashop:
-    image: ${DOCKER_IMAGE_PRESTASHOP:?See e2e-env/.env.dist}
-    container_name: prestashop
-    restart: unless-stopped
-    env_file: .env
-    depends_on:
-      ps-accounts-downloader:
-        condition: service_completed_successfully
-      mysql:
-        condition: service_healthy
-    environment:
-      - SSL_REDIRECT=true
-      - INSTALL_MODULES_DIR=/modules/downloads/auto-install
-    volumes:
-      - ./modules:/modules
-      - ./init-scripts:/tmp/init-scripts:ro
-    ports:
-      - ${HOST_PORT_BIND_PRESTASHOP:?See e2e-env/.env.dist}:80
+      - "3306:3306"
+    command: [ 'mysqld' ]
 
   mytun-config:
+    container_name: mytun-config
     restart: 'no'
     env_file: .env
     extends:
-      file: ./myTun/docker-compose.yml
+      file: myTun/docker-compose.yml
       service: config-generator
 
   mytun:
+    container_name: mytun
     restart: always
     image: cloudflare/cloudflared:latest
     command: tunnel --config /config.yml run
@@ -79,21 +67,19 @@ services:
       - ./myTun/config/mytun-config.yml:/config.yml
       - ./myTun/config/mytun-credentials.json:/credentials.json
 
-  phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: phpmyadmin
-    depends_on:
-      mysql:
-        condition: service_healthy
-    ports:
-      - ${HOST_PORT_BIND_PHP_MY_ADMIN:?See e2e-env/.env.dist}:80
+  ps-accounts-downloader:
+    container_name: ps-accounts-downloader
+    restart: 'no'
+    env_file: .env
+    extends:
+      file: modules/docker-compose.yml
+      service: asset-downloader
+    volumes:
+      - ./modules/downloads/auto-install:/modules/downloads/auto-install:rw
     environment:
-      - PMA_HOST=mysql
-      - PMA_PORT=3306
-      - PMA_USER=prestashop
-      - PMA_PASSWORD=prestashop
-      - MYSQL_ROOT_PASSWORD=prestashop
-
-volumes:
-  modules:
-    driver: local
+      GITHUB_API_TOKEN: $GITHUB_API_TOKEN
+      GITHUB_REPOSITORY: PrestaShopCorp/ps_accounts
+      TARGET_VERSION: $PS_ACCOUNTS_VERSION
+      TARGET_ASSET: ps_accounts.zip
+      FINAL_ASSET: ps_accounts-${PS_ACCOUNTS_VERSION}.zip
+      ASSET_PATH: /modules/downloads/auto-install

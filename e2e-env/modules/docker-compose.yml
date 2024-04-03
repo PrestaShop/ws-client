@@ -6,6 +6,6 @@ services:
       context: .
       dockerfile: ./asset-downloader.Dockerfile
     volumes:
-      - ./downloads/auto-install:/downloads/auto-install:rw
+      - ./modules/downloads/auto-install:/modules/downloads/auto-install:rw
     environment:
       - PS_ACCOUNTS_VERSION=${PS_ACCOUNTS_VERSION:?See e2e-env/.env.dist}
