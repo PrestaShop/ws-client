@@ -11,7 +11,6 @@ set -eux
 #   - MultiShop are not currently supported
 #
 # -----------------------------------------------------------------------------
-echo "############## plop 1"
 
 if [ "${ACCOUNTS_FAKE_ONBOARDING:-}" = "true" ]; then
   echo "* Skip Accounts real onboarding procedure."
@@ -24,8 +23,6 @@ if [ -z "${ACCOUNTS_EMAIL:-}" ] || [ -z "${ACCOUNTS_PASSWORD:-}" ]; then
   exit 2
 fi
 
-echo "############## plop 2"
-
 SSO_OAUTH_URL=${SSO_OAUTH_URL:-"https://oauth.prestashop.com/oauth2/auth"}
 SSO_TOKEN_URL=${SSO_TOKEN_URL:-"https://oauth.prestashop.com/oauth2/token"}
 ACCOUNTS_LOGIN_URL=${ACCOUNTS_LOGIN_URL:-"https://authv2.prestashop.com/login"}
@@ -33,8 +30,6 @@ ACCOUNTS_REDIRECT_URI=${ACCOUNTS_REDIRECT_URI:-"https://accounts.distribution.pr
 ACCOUNTS_API_URL=${ACCOUNTS_API_URL:-"https://accounts-api.distribution.prestashop.net"}
 CLIENT_ID=${CLIENT_ID:-"accounts-ui"}
 USER_AGENT=${USER_AGENT:-"CloudSyncCI/5.0 (Unix; IBM 701)"}
-
-echo "############## plop 3"
 
 # input: the SQL query
 # output: the MySQL result
@@ -78,8 +73,6 @@ uuid_v4 () {
 process_challenge () {
   printf '%s' $1 | openssl dgst -binary -sha256 | openssl base64 -A | tr + - | tr / _ | tr -d '%' | sed 's/=//g'
 }
-
-echo "############## plop 4"
 
 PS_DOMAIN=$(get_config PS_SHOP_DOMAIN_SSL);
 FRONT_URL="https://${PS_DOMAIN}"
