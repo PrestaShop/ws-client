@@ -1,0 +1,39 @@
+name: Push Tags
+on:
+  push:
+    branches:
+      - main
+
+env:
+  NODE_VERSION: 20.x
+
+jobs:
+  push-tag:
+    runs-on: ubuntu-latest
+    name: Create new Git Tag on github
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 'main'
+          token: ${{ secrets.MY_GA_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Get version from package.json
+        id: get_tag
+        run: echo ::set-output name=TAG::$(node -p "require('./package.json').version")
+
+      - name: Push Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GA_TOKEN }}
+        run: |
+          tag=${{ steps.get_tag.outputs.TAG }}
+          message='New Version ${{ steps.get_tag.outputs.TAG }}'
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git tag -a "${tag}" -m "${message}"
+          git push --tags
