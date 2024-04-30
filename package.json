@@ -2,8 +2,8 @@
   "name": "prestashop-ws-client",
   "version": "1.0.0",
   "description": "A typescript WebServices client for PrestaShop",
-  "main": "dist/ws-client.js",
-  "types": "dist/ws-client.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/types/index.js",
   "private": false,
   "scripts": {
     "build": "rimraf ./dist && tsc",
