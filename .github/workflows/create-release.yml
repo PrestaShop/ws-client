@@ -46,7 +46,7 @@ jobs:
         with:
           draft: false
           prerelease: false
-          release_name: "V${{ env.TAG_NAME }}"
+          release_name: "v${{ env.TAG_NAME }}"
           tag_name: ${{ env.TAG_NAME }}
           body: |
             ${{ steps.Changelog.outputs.changelog }}
