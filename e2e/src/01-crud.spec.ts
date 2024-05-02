@@ -1,15 +1,16 @@
+import { expect } from '@jest/globals';
 import { describe, it } from 'node:test';
-import { Category } from '../../src/types/ws-entities/categories.type';
-import { WsClient } from '../../src/ws-client';
-import { testConfig } from '../test.config';
+import { Category } from 'prestashop-ws-client';
+import { WSClient } from 'prestashop-ws-client/src/ws-client';
 import {
   categoryMultilanguage,
   newCategory,
 } from './fixtures/categories-sample';
+import { testConfig } from './test.config';
 
 describe('WS client: create', () => {
   it('Get a category', async () => {
-    const client = new WsClient(
+    const client: WSClient = new WSClient(
       testConfig.get('config').url,
       testConfig.get('config').key,
     );
@@ -20,7 +21,7 @@ describe('WS client: create', () => {
   });
 
   it('Add a category', async () => {
-    const client = new WsClient(
+    const client = new WSClient(
       testConfig.get('config').url,
       testConfig.get('config').key,
     );
@@ -33,7 +34,7 @@ describe('WS client: create', () => {
   });
 
   it('Update a category', async () => {
-    const client = new WsClient(
+    const client: WSClient = new WSClient(
       testConfig.get('config').url,
       testConfig.get('config').key,
     );
@@ -46,7 +47,7 @@ describe('WS client: create', () => {
   });
 
   it('Delete a category', async () => {
-    const client = new WsClient(
+    const client: WSClient = new WSClient(
       testConfig.get('config').url,
       testConfig.get('config').key,
     );
