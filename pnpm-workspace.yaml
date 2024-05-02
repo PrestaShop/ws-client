@@ -1,0 +1,7 @@
+---
+packages:
+  # WSClient
+  - '*'
+
+  # E2E test campaigns
+  - 'e2e'

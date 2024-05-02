@@ -1,5 +1,5 @@
 {
-  "name": "ws_client_e2e_tests",
+  "name": "ws-client-e2e-tests",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -8,6 +8,7 @@
     "test:e2e:detectOpenHandles": "jest --config=jest.config.json --detectOpenHandles"
   },
   "devDependencies": {
+    "prestashop-ws-client": "workspace:*",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.10",
     "@types/node": "^20.10.0",
