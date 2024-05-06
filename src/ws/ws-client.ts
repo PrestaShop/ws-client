@@ -1,6 +1,6 @@
-import { WSCategoriesClient } from './clients/ws-categories-client';
-import { WSOrdersClient } from './clients/ws-orders-client';
-import { WSProductsClient } from './clients/ws-products-client';
+import { WSCategoriesClient } from '../clients/ws-categories-client';
+import { WSOrdersClient } from '../clients/ws-orders-client';
+import { WSProductsClient } from '../clients/ws-products-client';
 import { init } from './ws-config';
 
 export class WSClient {
@@ -12,7 +12,7 @@ export class WSClient {
     private readonly url: string,
     private readonly key: string,
   ) {
-    init(url, key);
+    init(this.url, this.key);
     this.categories = new WSCategoriesClient();
     this.orders = new WSOrdersClient();
     this.products = new WSProductsClient();

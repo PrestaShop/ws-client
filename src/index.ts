@@ -1,5 +1,7 @@
 // Client
-export * as WSClient from './ws-client';
-
 // Enum
-export * as EndPoints from './enums/endpoint.enum';
+export * from './ws/ws-client';
+//Enum
+export * from './enums/endpoint.enum';
+// Types
+export * from './types';

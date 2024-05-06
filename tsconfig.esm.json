@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "es2022",
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false
+  },
+}
