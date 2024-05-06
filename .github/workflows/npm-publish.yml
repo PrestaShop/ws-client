@@ -51,6 +51,6 @@ jobs:
           VERSION: ${{ env.TAG_NAME }}
 
       - name: Publish
-        run: npm publish
+        run: pnpm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
