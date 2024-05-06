@@ -1,5 +1,4 @@
 {
-  "test": ".*.ts$",
   "jsc": {
     "parser": {
       "syntax": "typescript",
@@ -12,7 +11,7 @@
   },
   "exclude": [".*.spec.ts$"],
   "module": {
-    "type": "es2022",
+    "type": "commonjs",
     "strict": false,
     "strictMode": true,
     "lazy": false,
