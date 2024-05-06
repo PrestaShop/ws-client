@@ -21,11 +21,6 @@ jobs:
     name: NPM Publish
     runs-on: ubuntu-latest
     steps:
-      - name: Install pnpm
-        run: |
-          npm install -g pnpm@${{ env.PNPM_VERSION }}
-          pnpm install --no-optional
-
       - name: Get tag
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: echo "TAG_NAME=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_ENV
@@ -38,13 +33,18 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           registry-url: https://registry.npmjs.org/
 
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm@${{ env.PNPM_VERSION }}
+          pnpm install --no-optional
+
       - name: Install dependencies
         run: pnpm install
 
       - name: Build package
         run: pnpm run build
 
-      - name: Update npm version
+      - name: Update pnpm version
         run: pnpm version $VERSION --no-git-tag-version --allow-same-version
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
