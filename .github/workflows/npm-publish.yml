@@ -21,7 +21,7 @@ jobs:
     name: NPM Publish
     runs-on: ubuntu-latest
     steps:
-      - name: Install dependencies and setup e2e-env
+      - name: Install pnpm
         run: |
           npm install -g pnpm@${{ env.PNPM_VERSION }}
           pnpm install --no-optional
@@ -39,13 +39,13 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Build package
-        run: npm run build
+        run: pnpm run build
 
       - name: Update npm version
-        run: npm version $VERSION --no-git-tag-version --allow-same-version
+        run: pnpm version $VERSION --no-git-tag-version --allow-same-version
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           VERSION: ${{ env.TAG_NAME }}
