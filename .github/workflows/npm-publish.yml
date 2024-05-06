@@ -14,12 +14,18 @@ on:
 
 env:
   NODE_VERSION: 18.x
+  PNPM_VERSION: 9.0.6
 
 jobs:
   npm-publish:
     name: NPM Publish
     runs-on: ubuntu-latest
     steps:
+      - name: Install dependencies and setup e2e-env
+        run: |
+          npm install -g pnpm@${{ env.PNPM_VERSION }}
+          pnpm install --no-optional
+
       - name: Get tag
         if: ${{ github.event_name != 'workflow_dispatch' }}
         run: echo "TAG_NAME=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_ENV
