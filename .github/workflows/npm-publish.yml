@@ -31,26 +31,26 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          registry-url: https://registry.npmjs.org
+          registry-url: https://registry.npmjs.org/
 
-      - name: Install dependencies and setup e2e-env
+      - name: Install pnpm
         run: |
           npm install -g pnpm@${{ env.PNPM_VERSION }}
           pnpm install --no-optional
 
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Build package
-        run: npm run build
+        run: pnpm run build
 
-      - name: Update npm version
-        run: npm version $VERSION --no-git-tag-version --allow-same-version
+      - name: Update pnpm version
+        run: pnpm version $VERSION --no-git-tag-version --allow-same-version
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           VERSION: ${{ env.TAG_NAME }}
 
       - name: Publish
-        run: npm publish
+        run: pnpm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
