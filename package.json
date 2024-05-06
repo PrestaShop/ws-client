@@ -1,6 +1,6 @@
 {
   "name": "prestashop-ws-client",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A typescript WebServices client for PrestaShop",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
