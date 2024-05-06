@@ -1,11 +1,10 @@
 import { DOMParser } from '@xmldom/xmldom';
-import { Parser } from 'xml2js-cdata';
 import { create } from 'xmlbuilder2';
-import { Config } from './types/config.type';
-import { Entity, EntityWritable } from './types/entity-mapping.type';
+import { Config } from '../types/config.type';
+import { Entity, EntityWritable } from '../types/entity-mapping.type';
+import { endpointNodes } from '../xml/endpoint-nodes';
+import { getLanguageValues } from '../xml/xml.interfaces';
 import { wsConfig } from './ws-config';
-import { endpointNodes } from './xml/endpoint-nodes';
-import { getLanguageValues } from './xml/xml.interfaces';
 
 /**
  *
@@ -47,10 +46,8 @@ export class BaseClient<T extends keyof Entity> {
 
   /**
    * TODO encode key
-   *
-   * @param str
    */
-  encode(str: string): string {
+  encode(): string {
     return btoa(this.getConfig().key);
   }
 
@@ -208,7 +205,7 @@ export class BaseClient<T extends keyof Entity> {
    * return the synopsis XML as string
    */
   async getSynopsis(): Promise<string> {
-    const xmlParser = new Parser();
+    //const xmlParser = new Parser();
     // TODO
     // The category synopsis for version 1.7.x of PS is not correct
     // Recover the category synopsis from an xml file

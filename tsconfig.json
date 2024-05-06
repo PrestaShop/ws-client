@@ -1,22 +1,19 @@
 {
   "compilerOptions": {
+    "lib": ["es5", "es6", "es7", "esnext", "dom"],
     "target": "es2022",
-    "module": "CommonJS",
-    "allowJs": true,
-    "removeComments": true,
-    "resolveJsonModule": true,
-    "sourceMap": true,
-    "outDir": "dist",
-    "lib": ["es2022", "es6", "es7", "esnext", "dom"],
-    "baseUrl": ".",
-    "forceConsistentCasingInFileNames": true,
+    "removeComments": false,
     "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "moduleResolution": "node",
-    "incremental": true,
-    "declaration": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strictPropertyInitialization": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "downlevelIteration": true,
+    "isolatedModules": true
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts"]
 }

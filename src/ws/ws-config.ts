@@ -1,4 +1,4 @@
-import { Config } from './types/config.type';
+import { Config } from '../types/config.type';
 
 export const wsConfig: Config = { url: '', key: '' };
 
