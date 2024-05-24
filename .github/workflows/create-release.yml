@@ -28,8 +28,3 @@ jobs:
         uses: toolmantim/release-drafter@v5
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Update the version of the release
-        run : gh release edit ${{ env.PACKAGE_VERSION }} --draft=true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
