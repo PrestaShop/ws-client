@@ -22,7 +22,7 @@ type Translation = {
 export const getLanguageValues = (
   ...translations: Translation[]
 ): LanguageValue[] => {
-  let result: LanguageValue[] = [];
+  const result: LanguageValue[] = [];
   translations.forEach((translation) => {
     result.push(getLanguageValue(translation));
   });
