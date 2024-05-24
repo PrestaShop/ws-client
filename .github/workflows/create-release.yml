@@ -22,7 +22,7 @@ jobs:
 
       - name: Get version from package.json
         id: get_tag
-        run: echo ::set-output name=PACKAGE_VERSION::$(node -p "require('./package.json').version")
+        run: echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
       
       - name: Create a release draft
         uses: toolmantim/release-drafter@v5
