@@ -40,6 +40,6 @@ jobs:
           VERSION: ${{ github.event.release.tag_name }}
 
       - name: Publish
-        run: pnpm publish
+        run: pnpm publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
