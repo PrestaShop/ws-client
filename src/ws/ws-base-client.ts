@@ -223,7 +223,7 @@ export class BaseClient<T extends keyof Entity> {
         headers: this.getDefaultHeaders(),
       },
     );
-    return await response.text();
+    return response.text();
   }
 
   async getSynopsisNodeList() {
@@ -379,7 +379,7 @@ export class BaseClient<T extends keyof Entity> {
    * @return {string[]} - An array of paths.
    */
   initSpecificNodeIndicators(nodes: NodeList, path?: string): string[] {
-    let paths: string[] = [];
+    const paths: string[] = [];
     let _path: string = path!;
 
     for (const node of Array.from(nodes)) {
@@ -396,7 +396,6 @@ export class BaseClient<T extends keyof Entity> {
         }
       }
     }
-    console.log(paths);
     return paths;
   }
 

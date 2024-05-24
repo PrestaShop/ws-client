@@ -1,54 +1,33 @@
-name: Create Release
+name: Draft release
 
 on:
   push:
-    tags:
-      - '*'
-  workflow_dispatch:
-    inputs:
-      tag-name:
-        description: Tag to create release from
-        required: true
-        type: string
-        default: 2.1.0
+    branches: [main]
 
 env:
   NODE_VERSION: 18.x
-  TAG_NAME: ${{ inputs.tag-name }}
 
 jobs:
-  create-release:
+  update_release_draft:
     runs-on: ubuntu-latest
-    name: Create New Release on Github
-
+    if: github.event_name == 'push' && github.event.ref == 'refs/heads/main'
     steps:
-      - name: Get tag
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        run:  echo "TAG_NAME=$(echo $GITHUB_REF | cut -d / -f 3)" >> $GITHUB_ENV
-
-      - name: Changelog
-        uses: scottbrenner/generate-changelog-action@master
-        id: Changelog
-
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v2.0.0
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Add release
-        uses: actions/create-release@v1
-        id: create_release
-        with:
-          draft: false
-          prerelease: false
-          release_name: "v${{ env.TAG_NAME }}"
-          tag_name: ${{ env.TAG_NAME }}
-          body: |
-            ${{ steps.Changelog.outputs.changelog }}
+      - name: Get version from package.json
+        id: get_tag
+        run: echo ::set-output name=PACKAGE_VERSION::$(node -p "require('./package.json').version")
+      
+      - name: Create a release draft
+        uses: toolmantim/release-drafter@v5
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Update the version of the release
+        run : gh release edit ${{ env.PACKAGE_VERSION }} --draft=true
